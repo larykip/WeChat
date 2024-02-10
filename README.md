@@ -1,0 +1,1 @@
+This project is an overview learning journey through MERN Stack
