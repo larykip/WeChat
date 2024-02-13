@@ -3,6 +3,12 @@ const express = require('express')
 //initialize dotenv
 const dotenv = require('dotenv')
 
+//importing routes
+const userRoutes = require('./routes/userRoutes')
+
+//error handling routes
+const { notFound, errorHandler } = require('./middleware/error')
+
 //import DB connection
 const connectDB = require('./config/db')
 
@@ -14,6 +20,16 @@ const app = express()
 dotenv.config()
 //call DB connection
 connectDB()
+
+//middleware that enables the use of json
+app.use(express.json())
+
+//using routes
+app.use('/api/user', userRoutes)
+
+//error handling
+app.use(notFound)
+app.use(errorHandler)
 
 //loads the port provided and if not available, defaults to 3000
 const port = process.env.PORT || 3000
