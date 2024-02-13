@@ -1,7 +1,10 @@
 const asyncHandler = require('express-async-handler')
 const User = require('../models/userModel')
+const generateToken = require('../config/generateToken')
 
+//Registration controller
 const registerUser = asyncHandler(async(req, res) => {
+    //saves user input (uses destructuring method)
     const {name, email, password, pic} = req.body
 
     //throws an error if user submits an empty field
@@ -20,6 +23,7 @@ const registerUser = asyncHandler(async(req, res) => {
 
     }
 
+    //creates & saves a new user
     const user = await User.create({
         name,
         email,
@@ -27,13 +31,15 @@ const registerUser = asyncHandler(async(req, res) => {
         pic
     })
 
+    //displays the new data
     if(user){
-        res.send(201).json({
+        res.status(201).json({
             _id: user.id,
             name: user.name,
             email: user.email,
             password: user.password,
-            pic: user.pic
+            pic: user.pic,
+            token: generateToken(user.id)
         })
     }
     else {
@@ -42,4 +48,28 @@ const registerUser = asyncHandler(async(req, res) => {
     }
 })
 
-module.exports = registerUser
+//login controller
+const authUser = asyncHandler(async(req, res) => {
+    //gets inputed data
+    const {email, password} = req.body
+
+    //checks if user exists by checking the email as they are unique(strictly 1 per user)
+    const user = await User.findOne({ email })
+
+    //checks if user exists & uses the matchPassword method which will compare the password
+    if(user && (await user.matchPassword(password))){
+        //displays the data
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            pic: user.pic,
+            token: generateToken(user._id)
+        })
+    } else {
+        res.status(401)
+        throw new Error('User does not exist!')
+    }
+})
+
+module.exports = { registerUser, authUser }
